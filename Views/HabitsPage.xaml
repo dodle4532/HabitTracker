@@ -8,6 +8,8 @@
     <VerticalStackLayout Padding="20" Spacing="10">
         <Label Text="Привычки" FontSize="24" FontAttributes="Bold" />
         <Label Text="Здесь будет список привычек и их создание." />
+        <Label Text="{Binding Text}"/>
+        <Button Command="{Binding AddCommand}" Text="Нажать"/>
     </VerticalStackLayout>
 
 </ContentPage>
