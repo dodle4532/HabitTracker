@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="HabitTracker.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:HabitTracker.Views"
+    Title="Habit Tracker"
+    FlyoutBehavior="Flyout">
+
+    <!-- Locked = меню всегда видно слева, как в десктопных приложениях.
+         На мобильных лучше Flyout, но у нас десктоп-таргет в приоритете. -->
+
+    <FlyoutItem Title="Календарь">
+        <ShellContent ContentTemplate="{DataTemplate views:CalendarPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Привычки">
+        <ShellContent ContentTemplate="{DataTemplate views:HabitsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Достижения">
+        <ShellContent ContentTemplate="{DataTemplate views:AchievementsPage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Настройки">
+        <ShellContent ContentTemplate="{DataTemplate views:SettingsPage}" />
+    </FlyoutItem>
+
+</Shell>
