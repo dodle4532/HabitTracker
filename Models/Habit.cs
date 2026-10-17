@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 namespace HabitTracker.Models;
 
 /// <summary>
@@ -14,7 +16,7 @@ public class Habit
 {
     #region Идентификация
     // ── Идентификация ──────────────────────────────────────────────
-
+    [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Name { get; set; } = string.Empty;
@@ -34,7 +36,13 @@ public class Habit
     public int IntervalDays { get; set; } = 1;
 
     /// <summary>Используется только при <see cref="HabitFrequency.SpecificDays"/>.</summary>
+    [NotMapped]
     public List<DayOfWeek> ActiveDaysOfWeek { get; set; } = new();
+    public string ActiveDaysOfWeekJson
+    {
+        get => JsonSerializer.Serialize(ActiveDaysOfWeek);
+        set => ActiveDaysOfWeek = JsonSerializer.Deserialize<List<DayOfWeek>>(value) ?? new();
+    }
 
     /// <summary>Используется только при <see cref="HabitFrequency.Weekly"/>.</summary>
     public int TimesPerWeek { get; set; } = 1;

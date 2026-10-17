@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace HabitTracker.Models;
 
@@ -13,6 +16,7 @@ namespace HabitTracker.Models;
 public class CalendarDay
 {
     /// <summary>Дата дня. Хранится без времени (00:00:00).</summary>
+    [Key]
     public DateTime Date { get; set; }
 
     /// <summary>
@@ -20,7 +24,13 @@ public class CalendarDay
     /// Для неизмеримых привычек значение 0 или 1.
     /// Для измеримых — от 0 до Habit.TargetCount.
     /// </summary>
+    [NotMapped]
     public Dictionary<Guid, int> Completions { get; set; } = new();
+    public string CompletionsJson
+    {
+        get => JsonSerializer.Serialize(Completions);
+        set => Completions = JsonSerializer.Deserialize<Dictionary<Guid, int>>(value) ?? new();
+    }
 
     /// <summary>
     /// Доля выполнения конкретной привычки в этот день (0.0 – 1.0).

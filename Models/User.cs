@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 namespace HabitTracker.Models;
 
@@ -9,6 +11,7 @@ namespace HabitTracker.Models;
 /// </summary>
 public class User
 {
+    [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
 
     public string Name { get; set; } = string.Empty;
@@ -65,7 +68,13 @@ public class User
     /// Id полученных достижений. Сами достижения — статический реестр в коде
     /// (см. Achievements), здесь только ссылки на них.
     /// </summary>
+    [NotMapped]
     public List<string> UnlockedAchievementIds { get; set; } = new();
+    public string UnlockedAchievementIdsJson
+    {
+        get => JsonSerializer.Serialize(UnlockedAchievementIds);
+        set => UnlockedAchievementIds = JsonSerializer.Deserialize<List<string>>(value) ?? new();
+    }
 
     #endregion
 }
