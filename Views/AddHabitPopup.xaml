@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:vm="clr-namespace:HabitTracker.ViewModels"
+               xmlns:models="clr-namespace:HabitTracker.Models"
+               x:Class="HabitTracker.Views.AddHabitPopup"
+               xmlns:android="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;assembly=Microsoft.Maui.Controls"
+xmlns:win="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;assembly=Microsoft.Maui.Controls"
+               x:DataType="vm:AddHabitViewModel"
+               Size="400,650" 
+               Color="Transparent"
+               CanBeDismissedByTappingOutsideOfPopup="False">
+    <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" 
+            StrokeShape="RoundRectangle 12" 
+            Stroke="Gray" 
+            StrokeThickness="1"
+            Margin="10">
+
+        <!-- Оборачиваем в ScrollView, чтобы на маленьких экранах можно было прокрутить -->
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <Label Text="Новая привычка" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10"/>
+
+                <!-- Название -->
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Название" FontAttributes="Bold" FontSize="14"/>
+                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsNameInvalid}" Value="True">
+                                <Setter Property="Stroke" Value="Red" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding Name}" Placeholder="Например: Пить воду" Margin="5,0"/>
+                    </Border>
+                    <Label Text="{Binding NameError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsNameInvalid}" />
+                </VerticalStackLayout>
+
+                <!-- Очки -->
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Очки за выполнение" FontAttributes="Bold" FontSize="14"/>
+                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsPointsInvalid}" Value="True">
+                                <Setter Property="Stroke" Value="Red" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding PointsText}" Keyboard="Numeric" Margin="5,0"/>
+                    </Border>
+                    <Label Text="{Binding PointsError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsPointsInvalid}" />
+                </VerticalStackLayout>
+
+                <!-- Периодичность -->
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Периодичность" FontAttributes="Bold" FontSize="14"/>
+                    <!-- Для простоты используем Picker, заполнение которого сделаем в code-behind или через Enum -->
+                    <Picker Title="Выберите периодичность" 
+        ItemsSource="{Binding FrequencyNames}"
+        SelectedIndex="{Binding SelectedFrequencyIndex}" />
+                </VerticalStackLayout>
+
+                <!-- Интервал -->
+                <VerticalStackLayout Spacing="4" IsVisible="{Binding IsIntervalVisible}">
+                    <Label Text="Интервал (дней)" FontAttributes="Bold" FontSize="14"/>
+                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsIntervalInvalid}" Value="True">
+                                <Setter Property="Stroke" Value="Red" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding IntervalDaysText}" Keyboard="Numeric" Margin="10,0" BackgroundColor="Transparent"/>
+                    </Border>
+                    <Label Text="{Binding IntervalError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsIntervalInvalid}" />
+                </VerticalStackLayout>
+
+                <!-- Дни недели -->
+                <VerticalStackLayout Spacing="4" IsVisible="{Binding IsDaysOfWeekVisible}">
+                    <Label Text="Дни недели" FontAttributes="Bold" FontSize="14"/>
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" AlignItems="Center" BindableLayout.ItemsSource="{Binding DaysOfWeek}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="vm:DayOfWeekItem">
+                                <!-- Задаем ширину, чтобы влезало ровно 4 или 7 элементов -->
+                                <HorizontalStackLayout Spacing="2" Margin="0,0,10,10" WidthRequest="65">
+                                    <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center"/>
+                                    <Label Text="{Binding DayName}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+                <!-- Сколько раз в неделю -->
+                <VerticalStackLayout Spacing="4" IsVisible="{Binding IsTimesPerWeekVisible}">
+                    <Label Text="Сколько раз в неделю" FontAttributes="Bold" FontSize="14"/>
+                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsTimesPerWeekInvalid}" Value="True">
+                                <Setter Property="Stroke" Value="Red" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding TimesPerWeekText}" Keyboard="Numeric" Margin="10,0" BackgroundColor="Transparent"/>
+                    </Border>
+                    <Label Text="{Binding TimesPerWeekError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsTimesPerWeekInvalid}" />
+                </VerticalStackLayout>
+
+                <!-- Измеримость -->
+                <HorizontalStackLayout Spacing="10" Margin="0,5,0,0">
+                    <CheckBox IsChecked="{Binding IsMeasurable}" VerticalOptions="Center"/>
+                    <VerticalStackLayout>
+                        <Label Text="Измеримая привычка" FontSize="14" />
+                        <Label Text="(например, 8 стаканов)" FontSize="12" TextColor="Gray" />
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+
+                <!-- Целевое количество -->
+                <VerticalStackLayout Spacing="4" IsVisible="{Binding IsMeasurable}">
+                    <Label Text="Сколько раз выполнить (цель)" FontAttributes="Bold" FontSize="14"/>
+                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray">
+                        <Border.Triggers>
+                            <DataTrigger TargetType="Border" Binding="{Binding IsTargetCountInvalid}" Value="True">
+                                <Setter Property="Stroke" Value="Red" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                        </Border.Triggers>
+                        <Entry Text="{Binding TargetCountText}" Keyboard="Numeric" Margin="5,0"/>
+                    </Border>
+                    <Label Text="{Binding TargetCountError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsTargetCountInvalid}" />
+                </VerticalStackLayout>
+
+                <!-- Кнопки -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,20,0,0">
+                    <Button Text="Отмена" BackgroundColor="LightGray" TextColor="Black" Command="{Binding CancelCommand}" />
+                    <Button Grid.Column="1" Text="Добавить" Command="{Binding SubmitCommand}" />
+                </Grid>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Border>
+</toolkit:Popup>

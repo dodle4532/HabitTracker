@@ -3,13 +3,66 @@
     x:Class="HabitTracker.Views.HabitsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:HabitTracker.Models"
+    xmlns:vm="clr-namespace:HabitTracker.ViewModels"
+    x:DataType="vm:HabitsViewModel"
     Title="Привычки">
 
-    <VerticalStackLayout Padding="20" Spacing="10">
-        <Label Text="Привычки" FontSize="24" FontAttributes="Bold" />
-        <Label Text="Здесь будет список привычек и их создание." />
-        <Label Text="{Binding Text}"/>
-        <Button Command="{Binding AddCommand}" Text="Нажать"/>
-    </VerticalStackLayout>
+    <Grid RowDefinitions="Auto,*" Padding="20" RowSpacing="15">
 
+        <!-- Кнопка добавления -->
+        <Button Grid.Row="0" 
+                Command="{Binding OpenAddHabitPopupCommand}" 
+                Text="Добавить привычку" 
+                HorizontalOptions="Start" />
+
+        <!-- Список привычек -->
+        <CollectionView Grid.Row="1" 
+                        ItemsSource="{Binding Habits}"
+                        SelectionMode="None">
+
+            <!-- Если привычек нет -->
+            <CollectionView.EmptyView>
+                <Label Text="У вас пока нет привычек. Добавьте первую!" 
+                       HorizontalOptions="Center" 
+                       VerticalOptions="Center" 
+                       TextColor="Gray"/>
+            </CollectionView.EmptyView>
+
+            <!-- Шаблон карточки -->
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Habit">
+                    <Border Margin="0,0,0,10" 
+                            Padding="15" 
+                            StrokeShape="RoundRectangle 10" 
+                            StrokeThickness="1" 
+                            Stroke="Gray">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+
+                            <!-- Название -->
+                            <Label Grid.Row="0" Grid.Column="0" 
+                                   Text="{Binding Name}" 
+                                   FontAttributes="Bold" 
+                                   FontSize="16" />
+
+                            <!-- Очки -->
+                            <Label Grid.Row="0" Grid.Column="1" 
+                                   Text="{Binding Points, StringFormat='{0} очков'}" 
+                                   TextColor="Green" 
+                                   FontAttributes="Bold" 
+                                   VerticalOptions="Center" />
+
+                            <!-- Категория или Частота (вторая строка) -->
+                            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" 
+                                   Text="{Binding Category}" 
+                                   TextColor="Gray" 
+                                   FontSize="12" 
+                                   Margin="0,5,0,0"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
 </ContentPage>

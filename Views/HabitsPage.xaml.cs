@@ -1,11 +1,12 @@
-namespace HabitTracker.Views;
 using HabitTracker.ViewModels;
+
+namespace HabitTracker.Views;
 
 public partial class HabitsPage : ContentPage
 {
-    public HabitsPage()
+    public HabitsPage(HabitsViewModel viewModel)
     {
         InitializeComponent();
-        this.BindingContext = new HabitPageVM();
+        BindingContext = viewModel; // Устанавливаем ViewModel как контекст для привязок
     }
 }
