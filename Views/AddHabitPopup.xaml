@@ -21,7 +21,7 @@ xmlns:win="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSp
         <ScrollView>
             <VerticalStackLayout Padding="20" Spacing="15">
 
-                <Label Text="Новая привычка" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" Margin="0,0,0,10"/>
+                <Label Text="{Binding Title}" FontSize="22" FontAttributes="Bold" HorizontalOptions="Center" />
 
                 <!-- Название -->
                 <VerticalStackLayout Spacing="4">
@@ -36,6 +36,12 @@ xmlns:win="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSp
                         <Entry Text="{Binding Name}" Placeholder="Например: Пить воду" Margin="5,0"/>
                     </Border>
                     <Label Text="{Binding NameError}" TextColor="Red" FontSize="12" IsVisible="{Binding IsNameInvalid}" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Категория" FontAttributes="Bold" FontSize="14"/>
+                    <Picker Title="Выберите категорию" 
+            ItemsSource="{Binding CategoryNames}"
+            SelectedIndex="{Binding SelectedCategoryIndex}" />
                 </VerticalStackLayout>
 
                 <!-- Очки -->
@@ -134,7 +140,7 @@ xmlns:win="clr-namespace:Microsoft.Maui.Controls.PlatformConfiguration.WindowsSp
                 <!-- Кнопки -->
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,20,0,0">
                     <Button Text="Отмена" BackgroundColor="LightGray" TextColor="Black" Command="{Binding CancelCommand}" />
-                    <Button Grid.Column="1" Text="Добавить" Command="{Binding SubmitCommand}" />
+                    <Button Grid.Column="1" Text="{Binding SubmitButtonText}" Command="{Binding SubmitCommand}" />
                 </Grid>
 
             </VerticalStackLayout>

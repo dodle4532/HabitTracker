@@ -12,6 +12,46 @@ namespace HabitTracker.ViewModels;
 
 public partial class AddHabitViewModel : ObservableValidator
 {
+
+    public AddHabitViewModel(HabitService habitService, Habit? habitToEdit = null)
+    {
+        _habitService = habitService;
+
+        var orderedDays = new[]
+        {
+            DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+            DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+        };
+
+        DaysOfWeek = new ObservableCollection<DayOfWeekItem>(
+            orderedDays.Select(d => new DayOfWeekItem { Day = d, IsSelected = false })
+        );
+
+        // Если передали привычку -мы в режиме редактирования
+        _existingHabit = habitToEdit;
+        IsEditMode = habitToEdit != null;
+
+        // Если редактируем - заполняем поля
+        if (IsEditMode)
+        {
+            Name = habitToEdit.Name;
+            PointsText = habitToEdit.Points.ToString();
+            SelectedCategory = habitToEdit.Category;
+            IsMeasurable = habitToEdit.IsMeasurable;
+            TargetCountText = habitToEdit.TargetCount.ToString();
+            SelectedFrequency = habitToEdit.Frequency;
+            IntervalDaysText = habitToEdit.IntervalDays.ToString();
+            TimesPerWeekText = habitToEdit.TimesPerWeek.ToString();
+
+            // Отмечаем выбранные дни недели
+            foreach (var dayItem in DaysOfWeek)
+            {
+                dayItem.IsSelected = habitToEdit.ActiveDaysOfWeek.Contains(dayItem.Day);
+            }
+        }
+
+        ErrorsChanged += (s, e) => SubmitCommand.NotifyCanExecuteChanged();
+    }
     private readonly HabitService _habitService;
 
     public event EventHandler? OnSuccessfullyAdded;
@@ -123,6 +163,8 @@ public partial class AddHabitViewModel : ObservableValidator
 
     public static ValidationResult? ValidateTargetCount(string? value, ValidationContext context)
     {
+        if (context.ObjectInstance is not AddHabitViewModel vm) return ValidationResult.Success;
+        if (!vm.IsMeasurable) return ValidationResult.Success; // Если не измеримая - похуй на цель
         if (string.IsNullOrWhiteSpace(value)) return new ValidationResult("Цель обязательна");
         if (!int.TryParse(value, out var result)) return new ValidationResult("Введите целое число");
         if (result < 1) return new ValidationResult("Цель должна быть больше 0");
@@ -131,6 +173,11 @@ public partial class AddHabitViewModel : ObservableValidator
 
     public static ValidationResult? ValidateIntervalDays(string? value, ValidationContext context)
     {
+        // 1. Достаем ViewModel
+        if (context.ObjectInstance is not AddHabitViewModel vm) return ValidationResult.Success;
+
+        // 2. Если выбрана не периодичность "Интервал" - валидация не нужна
+        if (vm.SelectedFrequency != HabitFrequency.Interval) return ValidationResult.Success;
         if (string.IsNullOrWhiteSpace(value)) return new ValidationResult("Интервал обязателен");
         if (!int.TryParse(value, out var result)) return new ValidationResult("Введите целое число");
         if (result < 2 || result > 365) return new ValidationResult("Интервал от 2 до 365 дней");
@@ -152,6 +199,10 @@ public partial class AddHabitViewModel : ObservableValidator
         OnPropertyChanged(nameof(IsIntervalVisible));
         OnPropertyChanged(nameof(IsDaysOfWeekVisible));
         OnPropertyChanged(nameof(IsTimesPerWeekVisible)); // <--- Добавить
+        if (value == HabitFrequency.Interval && _existingHabit != null)
+        {
+            IntervalDaysText = "2";
+        }
     }
     public int TimesPerWeek => int.TryParse(TimesPerWeekText, out var val) ? val : 0;
 
@@ -160,6 +211,8 @@ public partial class AddHabitViewModel : ObservableValidator
 
     public static ValidationResult? ValidateTimesPerWeek(string? value, ValidationContext context)
     {
+        if (context.ObjectInstance is not AddHabitViewModel vm) return ValidationResult.Success;
+        if (vm.SelectedFrequency != HabitFrequency.Weekly) return ValidationResult.Success;
         if (string.IsNullOrWhiteSpace(value)) return new ValidationResult("Количество обязательно");
         if (!int.TryParse(value, out var result)) return new ValidationResult("Введите целое число");
         if (result < 1 || result > 7) return new ValidationResult("От 1 до 7 раз в неделю");
@@ -179,37 +232,72 @@ public partial class AddHabitViewModel : ObservableValidator
         ShowErrors = true;
         ValidateAllProperties();
 
-        // Обновляем видимость ошибок для всех полей
-        OnPropertyChanged(nameof(IsNameInvalid));
-        OnPropertyChanged(nameof(IsPointsInvalid));
-        OnPropertyChanged(nameof(IsTargetCountInvalid));
-        OnPropertyChanged(nameof(IsIntervalInvalid));
+        if (HasErrors) { SubmitCommand.NotifyCanExecuteChanged(); return; }
 
-        if (HasErrors)
+        if (IsEditMode && _existingHabit != null)
         {
-            SubmitCommand.NotifyCanExecuteChanged();
-            return;
+            // ОБНОВЛЕНИЕ
+            _existingHabit.Name = Name.Trim();
+            _existingHabit.Points = Points;
+            _existingHabit.IsMeasurable = IsMeasurable;
+            _existingHabit.TargetCount = IsMeasurable ? TargetCount : 1;
+            _existingHabit.Frequency = SelectedFrequency;
+            _existingHabit.Category = SelectedCategory;
+            _existingHabit.IntervalDays = IntervalDays;
+            _existingHabit.TimesPerWeek = TimesPerWeek;
+            _existingHabit.ActiveDaysOfWeek = IsDaysOfWeekVisible
+                ? DaysOfWeek.Where(d => d.IsSelected).Select(d => d.Day).ToList()
+                : new List<DayOfWeek>();
+
+            await _habitService.UpdateHabitAsync(_existingHabit);
         }
-
-        var newHabit = new Habit
+        else
         {
-            Name = Name.Trim(),
-            Points = Points,
-            IsMeasurable = IsMeasurable,
-            TargetCount = IsMeasurable ? TargetCount : 1,
-            TimesPerWeek = TimesPerWeek,
-            Frequency = SelectedFrequency,
-            IntervalDays = IntervalDays,
-            ActiveDaysOfWeek = IsDaysOfWeekVisible
+            // СОЗДАНИЕ
+            var newHabit = new Habit
+            {
+                Name = Name.Trim(),
+                Points = Points,
+                IsMeasurable = IsMeasurable,
+                TargetCount = IsMeasurable ? TargetCount : 1,
+                TimesPerWeek = TimesPerWeek,
+                Category = SelectedCategory,
+                Frequency = SelectedFrequency,
+                IntervalDays = IntervalDays,
+                ActiveDaysOfWeek = IsDaysOfWeekVisible
                 ? DaysOfWeek.Where(d => d.IsSelected).Select(d => d.Day).ToList()
                 : new List<DayOfWeek>()
-        };
+            };
+            await _habitService.AddHabitAsync(newHabit);
+        }
 
-        await _habitService.AddHabitAsync(newHabit);
         WeakReferenceMessenger.Default.Send(new HabitAddedMessage());
         OnSuccessfullyAdded?.Invoke(this, EventArgs.Empty);
     }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedCategoryIndex))]
+    private HabitCategory _selectedCategory = HabitCategory.Health;
 
+    // Список названий категорий для UI
+    public List<string> CategoryNames { get; } = new()
+    {
+        "Здоровье", "Спорт", "Питание", "Сон", "Осознанность",
+        "Обучение", "Работа", "Творчество", "Финансы", "Общение", "Быт", "Другое"
+    };
+
+    // Свойство для Picker (связываем индекс и Enum)
+    public int SelectedCategoryIndex
+    {
+        get => (int)SelectedCategory;
+        set
+        {
+            if (value >= 0 && value != (int)SelectedCategory)
+            {
+                SelectedCategory = (HabitCategory)value;
+                OnPropertyChanged();
+            }
+        }
+    }
     [RelayCommand]
     private void Cancel()
     {
@@ -272,24 +360,11 @@ public partial class AddHabitViewModel : ObservableValidator
         SubmitCommand.NotifyCanExecuteChanged();
     }
 
-    // --- Конструктор ---
+    public bool IsEditMode { get; }
+    public string Title => IsEditMode ? "Редактировать привычку" : "Новая привычка";
+    public string SubmitButtonText => IsEditMode ? "Сохранить" : "Добавить";
 
-    public AddHabitViewModel(HabitService habitService)
-    {
-        _habitService = habitService;
-
-        var orderedDays = new[]
-        {
-            DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
-            DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
-        };
-
-        DaysOfWeek = new ObservableCollection<DayOfWeekItem>(
-            orderedDays.Select(d => new DayOfWeekItem { Day = d, IsSelected = false })
-        );
-
-        ErrorsChanged += (s, e) => SubmitCommand.NotifyCanExecuteChanged();
-    }
+    private readonly Habit? _existingHabit; // Храним ссылку на редактируемую привычку
 }
 
 /// <summary>

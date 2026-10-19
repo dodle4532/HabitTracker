@@ -55,4 +55,30 @@ public partial class HabitsViewModel : ObservableObject
         var popup = new AddHabitPopup(_habitService);
         await Shell.Current.CurrentPage.ShowPopupAsync(popup);
     }
+
+    // Команда удаления
+    [RelayCommand]
+    private async Task DeleteHabitAsync(Habit habit)
+    {
+        if (habit == null) return;
+
+        bool confirm = await Application.Current.MainPage.DisplayAlert("Удаление", $"Удалить привычку '{habit.Name}'?", "Да", "Нет");
+        if (confirm)
+        {
+            // В нашем HabitService нет метода удаления, добавим его или используем архивацию
+            await _habitService.DeleteHabitAsync(habit);
+            await LoadHabitsAsync(); // Обновляем список
+        }
+    }
+
+    // Команда редактирования (открытие попапа)
+    [RelayCommand]
+    private async Task EditHabitAsync(Habit habit)
+    {
+        if (habit == null) return;
+
+        // Передаем привычку в попап, чтобы он знал, что это редактирование
+        var popup = new AddHabitPopup(_habitService, habit);
+        await Shell.Current.CurrentPage.ShowPopupAsync(popup);
+    }
 }

@@ -15,6 +15,7 @@ public class HabitService
     /// <summary>Получает все активные (не архивные) привычки.</summary>
     public async Task<List<Habit>> GetActiveHabitsAsync()
     {
+        _dbContext.ChangeTracker.Clear();
         return await _dbContext.Habits
             .Where(h => !h.IsArchived)
             .ToListAsync();
@@ -24,6 +25,12 @@ public class HabitService
     public async Task AddHabitAsync(Habit habit)
     {
         _dbContext.Habits.Add(habit);
+        await _dbContext.SaveChangesAsync();
+    }
+    /// <summary>Удаляет привычку.</summary>
+    public async Task DeleteHabitAsync(Habit habit)
+    {
+        _dbContext.Habits.Remove(habit);
         await _dbContext.SaveChangesAsync();
     }
 
