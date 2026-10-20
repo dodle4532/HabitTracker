@@ -78,7 +78,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="Views\DayDetailsPopup.xaml.cs">
+	    <DependentUpon>DayDetailsPopup.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <MauiXaml Update="Views\AddHabitPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Views\DayDetailsPopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

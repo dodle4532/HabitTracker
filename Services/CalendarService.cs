@@ -65,6 +65,15 @@ public class CalendarService
 
         return earnedPoints;
     }
+    /// <summary>
+    /// Возвращает все дни из БД в указанном диапазоне дат (включительно).
+    /// </summary>
+    public async Task<List<CalendarDay>> GetDaysInRangeAsync(DateTime start, DateTime end)
+    {
+        return await _dbContext.CalendarDays
+            .Where(d => d.Date >= start.Date && d.Date <= end.Date)
+            .ToListAsync();
+    }
 
     /// <summary>
     /// Пересчитывает стрики. Вызывается при каждой отметке.

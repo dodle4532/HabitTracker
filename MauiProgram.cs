@@ -29,6 +29,8 @@ namespace HabitTracker
             });
             builder.Services.AddTransient<HabitsViewModel>();
             builder.Services.AddTransient<HabitsPage>();
+            builder.Services.AddTransient<CalendarViewModel>();
+            builder.Services.AddTransient<DayDetailsViewModel>();
             // Регистрируем сервисы
             builder.Services.AddSingleton<CalendarService>();
             builder.Services.AddSingleton<UserService>();

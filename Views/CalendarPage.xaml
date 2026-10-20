@@ -1,13 +1,100 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<ContentPage
-    x:Class="HabitTracker.Views.CalendarPage"
-    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    Title="Календарь">
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:HabitTracker.ViewModels"
+             x:Class="HabitTracker.Views.CalendarPage"
+             x:DataType="vm:CalendarViewModel"
+             Title="Календарь">
 
-    <VerticalStackLayout Padding="20" Spacing="10">
-        <Label Text="Календарь" FontSize="24" FontAttributes="Bold" />
-        <Label Text="Здесь будет отображение дней и отметок." />
-    </VerticalStackLayout>
+    <Grid RowDefinitions="Auto,Auto,*" Padding="10" RowSpacing="10">
 
+        <!-- Шапка с навигацией -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto">
+            <Button Grid.Column="0" Text="&lt;" Command="{Binding PreviousMonthCommand}" />
+            <Label Grid.Column="1" Text="{Binding MonthTitle}" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="&gt;" Command="{Binding NextMonthCommand}" />
+        </Grid>
+
+        <!-- Дни недели -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding DayNames}" SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="7" />
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding .}" HorizontalOptions="Center" FontAttributes="Bold" TextColor="Gray" />
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Сетка дней -->
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Days}" SelectionMode="None">
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Vertical" Span="7" HorizontalItemSpacing="2" VerticalItemSpacing="2" />
+            </CollectionView.ItemsLayout>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:CalendarDayVM">
+                    <Border Stroke="Gray" StrokeThickness="1" StrokeShape="RoundRectangle 5" Padding="2" 
+                            HeightRequest="100" BackgroundColor="{AppThemeBinding Light=#F9F9F9, Dark=#2D2D2D}">
+
+                        <Border.Triggers>
+                            <!-- Сегодняшний день -->
+                            <DataTrigger TargetType="Border" Binding="{Binding IsToday}" Value="True">
+                                <Setter Property="Stroke" Value="{DynamicResource Primary}" />
+                                <Setter Property="StrokeThickness" Value="2" />
+                            </DataTrigger>
+                            <!-- Дни другого месяца - серые -->
+                            <DataTrigger TargetType="Border" Binding="{Binding IsCurrentMonth}" Value="False">
+                                <Setter Property="Opacity" Value="0.4" />
+                            </DataTrigger>
+                            <!-- Пустые ячейки скрываем -->
+                            <DataTrigger TargetType="Border" Binding="{Binding IsEmpty}" Value="True">
+                                <Setter Property="IsVisible" Value="False" />
+                            </DataTrigger>
+                        </Border.Triggers>
+
+                        <!-- Клик по фону ячейки открывает карточку дня -->
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer 
+                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CalendarViewModel}}, Path=OpenDayDetailsCommand}"
+                                CommandParameter="{Binding .}" />
+                        </Border.GestureRecognizers>
+
+                        <Grid RowDefinitions="Auto,*">
+                            <Label Grid.Row="0" Text="{Binding DayNumber}" FontSize="12" HorizontalOptions="Start" />
+
+                            <!-- Список видимых привычек -->
+                            <VerticalStackLayout Grid.Row="1" Spacing="2">
+                                <BindableLayout.ItemsSource>
+                                    <Binding Path="VisibleHabits" />
+                                </BindableLayout.ItemsSource>
+                                <BindableLayout.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:HabitDayVM">
+                                        <HorizontalStackLayout Spacing="2">
+                                            <!-- Чекбокс: если измеримая - не даем менять напрямую, если обычная - меняем -->
+                                            <CheckBox IsChecked="{Binding IsCompleted}" 
+                                                      IsEnabled="{Binding Habit.IsMeasurable, Converter={StaticResource InvertBoolConverter}}"
+                                                      VerticalOptions="Center" 
+                                                      Scale="0.7" Margin="0,-5,0,-5">
+                                                <CheckBox.GestureRecognizers>
+                                                    <!-- Пустой обработчик, чтобы клик по чекбоксу не проваливался в Border -->
+                                                    <TapGestureRecognizer Tapped="OnCheckboxTapped" />
+                                                </CheckBox.GestureRecognizers>
+                                            </CheckBox>
+                                            <Label Text="{Binding Habit.Name}" FontSize="10" VerticalOptions="Center" LineBreakMode="TailTruncation" />
+                                        </HorizontalStackLayout>
+                                    </DataTemplate>
+                                </BindableLayout.ItemTemplate>
+                            </VerticalStackLayout>
+
+                            <!-- Текст "+7 еще" -->
+                            <Label Grid.Row="1" Text="{Binding HiddenHabitsText}" IsVisible="{Binding HasHiddenHabits}" 
+                                   FontSize="10" TextColor="Gray" VerticalOptions="End" HorizontalOptions="End" />
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>

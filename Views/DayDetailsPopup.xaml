@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<toolkit:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+               xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+               xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+               xmlns:vm="clr-namespace:HabitTracker.ViewModels"
+               x:Class="HabitTracker.Views.DayDetailsPopup"
+               x:DataType="vm:DayDetailsViewModel"
+               Color="Transparent"
+               Size="400,600">
+
+    <Border BackgroundColor="{AppThemeBinding Light=White, Dark=#1E1E1E}" StrokeShape="RoundRectangle 12" Padding="20">
+        <Grid RowDefinitions="Auto,*,Auto" RowSpacing="15">
+
+            <Label Grid.Row="0" Text="{Binding Title}" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center"/>
+
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Habits}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HabitDayVM">
+                        <Border Padding="10" Margin="0,0,0,5" Stroke="Gray" StrokeThickness="1" StrokeShape="RoundRectangle 5">
+                            <!-- Внутри DataTemplate x:DataType="vm:HabitDayVM" -->
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+                                <CheckBox Grid.Column="0" IsChecked="{Binding IsCompleted}" Color="White" VerticalOptions="Center"/>
+
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Habit.Name}" FontAttributes="Bold" FontSize="16"/>
+                                    <Label Text="{Binding ProgressText}" FontSize="12" TextColor="Gray" 
+               IsVisible="{Binding Habit.IsMeasurable}"/>
+                                </VerticalStackLayout>
+
+                                <!-- Поле ввода для измеримых с валидацией -->
+                                <VerticalStackLayout Grid.Column="2" IsVisible="{Binding Habit.IsMeasurable}">
+                                    <Border StrokeShape="RoundRectangle 5" StrokeThickness="1" Stroke="Gray" WidthRequest="60">
+                                        <Border.Triggers>
+                                            <DataTrigger TargetType="Border" Binding="{Binding HasErrors}" Value="True">
+                                                <Setter Property="Stroke" Value="Red" />
+                                                <Setter Property="StrokeThickness" Value="2" />
+                                            </DataTrigger>
+                                        </Border.Triggers>
+                                        <Entry Text="{Binding CompletedCountText}" 
+                   Keyboard="Numeric" 
+                   HorizontalTextAlignment="Center" 
+                   BackgroundColor="Transparent"/>
+                                    </Border>
+                                    <!-- Текст ошибки (если понадобится) -->
+                                    <Label Text="{Binding ErrorMessage}" 
+                                   TextColor="Red" 
+                                   FontSize="10" 
+                                   IsVisible="{Binding HasErrors}" 
+                                   HorizontalOptions="Center"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+            <Button Grid.Row="2" Text="Сохранить и закрыть" Command="{Binding SaveCommand}" />
+        </Grid>
+    </Border>
+</toolkit:Popup>
